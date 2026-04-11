@@ -1,0 +1,98 @@
+<?php include 'db.php'; ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSc/BCA College Institute - Student CMS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <h1>MSc/BCA College Institute</h1>
+                <span>Student CMS</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.php">Home</a></li>
+                <li><a href="#policy">Policy</a></li>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <li><a href="<?php echo $_SESSION['role'] == 'admin' ? 'admin.php' : 'dashboard.php'; ?>">Dashboard</a></li>
+                    <li><a href="logout.php" class="btn-login">Logout</a></li>
+                <?php else: ?>
+                    <li><a href="login.php" class="btn-login">Login</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Student <span>CMS</span></h2>
+            <p>A secure platform for students to voice their concerns.</p>
+        </section>
+
+        <div class="main-grid">
+            <section class="categories-section">
+                <div class="category-grid">
+                    <div class="category-box" onclick="updatePolicy('Sexual Cell')" onmouseover="updatePolicy('Sexual Cell')">
+                        <div class="icon">🚨</div>
+                        <h3>Sexual Cell</h3>
+                    </div>
+                    <div class="category-box" onclick="updatePolicy('Anti-Ragging Cell')" onmouseover="updatePolicy('Anti-Ragging Cell')">
+                        <div class="icon">👥</div>
+                        <h3>Anti-Ragging Cell</h3>
+                    </div>
+                    <div class="category-box" onclick="updatePolicy('Anti-Harassment Cell')" onmouseover="updatePolicy('Anti-Harassment Cell')">
+                        <div class="icon">🤝</div>
+                        <h3>Anti-Harassment Cell</h3>
+                    </div>
+                    <div class="category-box" onclick="updatePolicy('Grievance Cell')" onmouseover="updatePolicy('Grievance Cell')">
+                        <div class="icon">⚖️</div>
+                        <h3>Grievance Cell</h3>
+                    </div>
+                    <div class="category-box" onclick="updatePolicy('Hygiene/Facility Cell')" onmouseover="updatePolicy('Hygiene/Facility Cell')">
+                        <div class="icon">🏢</div>
+                        <h3>Hygiene/Facility Cell</h3>
+                    </div>
+                    <div class="category-box" onclick="updatePolicy('Disciplinary Committee')" onmouseover="updatePolicy('Disciplinary Committee')">
+                        <div class="icon">🔨</div>
+                        <h3>Disciplinary Committee</h3>
+                    </div>
+                </div>
+                
+                <div class="action-bar">
+                    <a href="complaint.php" class="btn-primary">Lodge Complaint</a>
+                </div>
+            </section>
+
+            <aside id="policy" class="policy-section">
+                <h3 id="policy-title">Policy & Guidelines</h3>
+                <div class="policy-content">
+                    <h4 id="policy-subtitle">When to submit?</h4>
+                    <p id="policy-desc">Submit a complaint when you witness or experience any policy violations.</p>
+                    
+                    <h4 id="guidelines-title">Guidelines</h4>
+                    <ul id="policy-list">
+                        <li>Be factual and clear.</li>
+                        <li>Upload proof if available.</li>
+                        <li>Confidentiality is maintained.</li>
+                        <li>No false complaints allowed.</li>
+                    </ul>
+                    <div id="back-btn-container" style="margin-top: 1.5rem; display: none;">
+                        <button onclick="updatePolicy('General')" style="background: none; border: none; color: #3b82f6; font-weight: bold; cursor: pointer; font-size: 0.8rem;">← Back to General</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 MSc/BCA College Institute. All rights reserved.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
