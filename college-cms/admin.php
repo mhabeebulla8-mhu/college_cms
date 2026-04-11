@@ -58,7 +58,7 @@ $result = $conn->query($query);
             <form action="admin.php" method="GET" style="display: flex; gap: 1rem;">
                 <select name="category" onchange="this.form.submit()" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
                     <option value="">All Categories</option>
-                    <option value="Sexual Cell" <?php if(isset($_GET['category']) && $_GET['category'] == 'Sexual Cell') echo 'selected'; ?>>Sexual Cell</option>
+                    <option value="Anti-Sexual Harassment Cell" <?php if(isset($_GET['category']) && $_GET['category'] == 'Anti-Sexual Harassment Cell') echo 'selected'; ?>>Anti-Sexual Harassment Cell</option>
                     <option value="Anti-Ragging Cell" <?php if(isset($_GET['category']) && $_GET['category'] == 'Anti-Ragging Cell') echo 'selected'; ?>>Anti-Ragging Cell</option>
                     <option value="Anti-Harassment Cell" <?php if(isset($_GET['category']) && $_GET['category'] == 'Anti-Harassment Cell') echo 'selected'; ?>>Anti-Harassment Cell</option>
                     <option value="Grievance Cell" <?php if(isset($_GET['category']) && $_GET['category'] == 'Grievance Cell') echo 'selected'; ?>>Grievance Cell</option>

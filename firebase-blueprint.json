@@ -21,7 +21,7 @@
         "studentName": { "type": "string", "description": "Name of the student for easier display" },
         "category": { 
           "type": "string", 
-          "enum": ["Sexual Cell", "Anti-Ragging Cell", "Anti-Harassment Cell", "Grievance Cell", "Hygiene/Facility Cell", "Disciplinary Committee"],
+          "enum": ["Anti-Sexual Harassment Cell", "Anti-Ragging Cell", "Anti-Harassment Cell", "Grievance Cell", "Hygiene/Facility Cell", "Disciplinary Committee"],
           "description": "The committee the complaint is directed to" 
         },
         "description": { "type": "string", "description": "Detailed description of the complaint" },
