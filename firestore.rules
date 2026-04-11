@@ -33,7 +33,7 @@ service cloud.firestore {
     function isValidComplaint(data) {
       return data.keys().hasAll(['userId', 'studentName', 'category', 'description', 'status', 'createdAt']) &&
              data.userId == request.auth.uid &&
-             data.category in ["Sexual Cell", "Anti-Ragging Cell", "Anti-Harassment Cell", "Grievance Cell", "Hygiene/Facility Cell", "Disciplinary Committee"] &&
+             data.category in ["Anti-Sexual Harassment Cell", "Anti-Ragging Cell", "Anti-Harassment Cell", "Grievance Cell", "Hygiene/Facility Cell", "Disciplinary Committee"] &&
              data.description is string && data.description.size() > 0 && data.description.size() < 5000 &&
              data.status in ['Pending', 'In Progress', 'Resolved'];
     }

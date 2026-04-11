@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="register.php" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="name" required placeholder="John Doe">
+                <input type="text" name="name" required placeholder="">
             </div>
             <div class="form-group">
                 <label>Email Address</label>
@@ -76,11 +76,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <div class="form-group">
                 <label>University Reg No</label>
-                <input type="text" name="university_reg_no" required placeholder="e.g. 2023BCA001">
+                <input type="text" name="university_reg_no" required placeholder="">
             </div>
             <div class="form-group">
                 <label>Upload ID Card</label>
-                <input type="file" name="id_card" required>
+                <input type="file" name="id_card" required accept="image/*,.pdf">
             </div>
             <div class="form-group">
                 <label>Password</label>

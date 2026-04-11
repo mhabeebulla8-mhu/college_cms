@@ -37,9 +37,9 @@
         <div class="main-grid">
             <section class="categories-section">
                 <div class="category-grid">
-                    <div class="category-box" onclick="updatePolicy('Sexual Cell')" onmouseover="updatePolicy('Sexual Cell')">
+                    <div class="category-box" onclick="updatePolicy('Anti-Sexual Harassment Cell')" onmouseover="updatePolicy('Anti-Sexual Harassment Cell')">
                         <div class="icon">🚨</div>
-                        <h3>Sexual Cell</h3>
+                        <h3>Anti-Sexual Harassment Cell</h3>
                     </div>
                     <div class="category-box" onclick="updatePolicy('Anti-Ragging Cell')" onmouseover="updatePolicy('Anti-Ragging Cell')">
                         <div class="icon">👥</div>
@@ -62,10 +62,6 @@
                         <h3>Disciplinary Committee</h3>
                     </div>
                 </div>
-                
-                <div class="action-bar">
-                    <a href="complaint.php" class="btn-primary">Lodge Complaint</a>
-                </div>
             </section>
 
             <aside id="policy" class="policy-section">
@@ -81,7 +77,12 @@
                         <li>Confidentiality is maintained.</li>
                         <li>No false complaints allowed.</li>
                     </ul>
-                    <div id="back-btn-container" style="margin-top: 1.5rem; display: none;">
+
+                    <div class="sidebar-action" style="margin-top: 2rem;">
+                        <a href="complaint.php" class="btn-primary" style="display: block; text-align: center; width: 100%;">Lodge Complaint</a>
+                    </div>
+
+                    <div id="back-btn-container" style="margin-top: 1rem; display: none;">
                         <button onclick="updatePolicy('General')" style="background: none; border: none; color: #3b82f6; font-weight: bold; cursor: pointer; font-size: 0.8rem;">← Back to General</button>
                     </div>
                 </div>

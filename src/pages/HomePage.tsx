@@ -5,7 +5,7 @@ import { ShieldAlert, Users, HeartHandshake, Scale, Building2, Gavel, ArrowRight
 import { motion, AnimatePresence } from 'motion/react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
-  "Sexual Cell": <ShieldAlert className="w-8 h-8 text-rose-500" />,
+  "Anti-Sexual Harassment Cell": <ShieldAlert className="w-8 h-8 text-rose-500" />,
   "Anti-Ragging Cell": <Users className="w-8 h-8 text-orange-500" />,
   "Anti-Harassment Cell": <HeartHandshake className="w-8 h-8 text-purple-500" />,
   "Grievance Cell": <Scale className="w-8 h-8 text-blue-500" />,
@@ -24,7 +24,7 @@ const categoryPolicies: Record<string, { description: string, guidelines: string
       "Track status via your dashboard."
     ]
   },
-  "Sexual Cell": {
+  "Anti-Sexual Harassment Cell": {
     description: "Handles cases related to sexual harassment, misconduct, or any gender-based discrimination.",
     guidelines: [
       "Strict confidentiality is maintained for the complainant.",
@@ -131,16 +131,6 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
-
-          <div className="flex justify-center pt-8">
-            <Link 
-              to="/lodge-complaint" 
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              Lodge Complaint
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
         </div>
 
         {/* Policy Section */}
@@ -172,14 +162,24 @@ export default function HomePage() {
               ))}
             </div>
 
-            {selectedCategory !== "General" && (
-              <button 
-                onClick={() => setSelectedCategory("General")}
-                className="text-xs font-bold text-blue-600 hover:underline"
+            <div className="pt-4 flex flex-col gap-4">
+              <Link 
+                to="/lodge-complaint" 
+                className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-center hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
-                ← Back to General Guidelines
-              </button>
-            )}
+                Lodge Complaint
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              {selectedCategory !== "General" && (
+                <button 
+                  onClick={() => setSelectedCategory("General")}
+                  className="text-xs font-bold text-blue-600 hover:underline self-start"
+                >
+                  ← Back to General Guidelines
+                </button>
+              )}
+            </div>
 
             <div className="pt-4 border-t border-slate-100">
               <p className="text-xs text-slate-400 italic">

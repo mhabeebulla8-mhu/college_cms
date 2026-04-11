@@ -89,7 +89,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="John Doe"
+                placeholder=""
               />
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function RegisterPage() {
                     value={universityRegNo}
                     onChange={(e) => setUniversityRegNo(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                    placeholder="e.g. 2023BCA001"
+                    placeholder=""
                   />
                 </div>
               </div>

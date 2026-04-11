@@ -24,7 +24,7 @@ export interface Complaint {
 }
 
 export const COMPLAINT_CATEGORIES = [
-  "Sexual Cell",
+  "Anti-Sexual Harassment Cell",
   "Anti-Ragging Cell",
   "Anti-Harassment Cell",
   "Grievance Cell",

@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>Complaint Category</label>
                 <select name="category" required>
                     <option value="">Select a category</option>
-                    <option value="Sexual Cell">Sexual Cell</option>
+                    <option value="Anti-Sexual Harassment Cell">Anti-Sexual Harassment Cell</option>
                     <option value="Anti-Ragging Cell">Anti-Ragging Cell</option>
                     <option value="Anti-Harassment Cell">Anti-Harassment Cell</option>
                     <option value="Grievance Cell">Grievance Cell</option>
@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <div class="form-group">
                 <label>Supporting Document (Optional)</label>
-                <input type="file" name="file">
+                <input type="file" name="file" accept="image/*,.pdf">
             </div>
             <button type="submit" class="btn-block">Submit Complaint</button>
         </form>

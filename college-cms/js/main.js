@@ -10,8 +10,8 @@ const categoryPolicies = {
             "No false complaints allowed."
         ]
     },
-    "Sexual Cell": {
-        title: "Sexual Cell Policy",
+    "Anti-Sexual Harassment Cell": {
+        title: "Anti-Sexual Harassment Policy",
         subtitle: "About this cell",
         description: "Handles cases related to sexual harassment, misconduct, or any gender-based discrimination.",
         guidelines: [

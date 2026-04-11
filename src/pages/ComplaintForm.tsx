@@ -127,6 +127,7 @@ export default function ComplaintForm({ profile }: { profile: UserProfile }) {
             <div className="relative group">
               <input
                 type="file"
+                accept="image/*,.pdf"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
