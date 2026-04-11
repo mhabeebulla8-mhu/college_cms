@@ -5,6 +5,8 @@ export interface UserProfile {
   name: string;
   email: string;
   role: UserRole;
+  universityRegNo?: string;
+  idCardPath?: string;
   createdAt: string;
 }
 

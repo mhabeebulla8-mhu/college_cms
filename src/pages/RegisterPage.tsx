@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { UserPlus, Mail, Lock, User, AlertCircle, ShieldCheck } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, ShieldCheck, Hash, FileUp } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'admin'>('student');
+  const [universityRegNo, setUniversityRegNo] = useState('');
+  const [idCard, setIdCard] = useState<File | null>(null);
+  const [role] = useState<'student' | 'admin'>('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,6 +21,24 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
+      let idCardPath = '';
+
+      // Upload ID Card if provided
+      if (idCard) {
+        const formData = new FormData();
+        formData.append('file', idCard);
+        
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadRes.ok) {
+          const data = await uploadRes.json();
+          idCardPath = data.filePath;
+        }
+      }
+
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       
       // Create user profile in Firestore
@@ -26,7 +46,9 @@ export default function RegisterPage() {
         uid: user.uid,
         name,
         email,
-        role,
+        role: 'student',
+        universityRegNo,
+        idCardPath,
         createdAt: new Date().toISOString()
       });
 
@@ -39,7 +61,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8">
+    <div className="max-w-md mx-auto mt-8 mb-12">
       <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
         <div className="text-center mb-8">
           <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -82,10 +104,43 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="student@college.edu"
+                placeholder=""
               />
             </div>
           </div>
+
+          {role === 'student' && (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 ml-1">University Reg No</label>
+                <div className="relative">
+                  <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input 
+                    type="text" 
+                    required={role === 'student'}
+                    value={universityRegNo}
+                    onChange={(e) => setUniversityRegNo(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    placeholder="e.g. 2023BCA001"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 ml-1">Upload ID Card</label>
+                <div className="relative">
+                  <FileUp className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input 
+                    type="file" 
+                    accept="image/*,.pdf"
+                    required={role === 'student'}
+                    onChange={(e) => setIdCard(e.target.files?.[0] || null)}
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
@@ -97,38 +152,8 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
-                placeholder="••••••••"
+                placeholder=""
               />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Account Type</label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setRole('student')}
-                className={`py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-semibold ${
-                  role === 'student' 
-                    ? 'border-blue-600 bg-blue-50 text-blue-600' 
-                    : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('admin')}
-                className={`py-3 px-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 font-semibold ${
-                  role === 'admin' 
-                    ? 'border-blue-600 bg-blue-50 text-blue-600' 
-                    : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Admin
-              </button>
             </div>
           </div>
 

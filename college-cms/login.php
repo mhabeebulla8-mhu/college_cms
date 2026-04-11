@@ -46,7 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="form-container">
-        <h2 style="text-align:center; margin-bottom: 2rem;">Welcome Back</h2>
+        <div class="login-tabs" style="display: flex; background: #f1f5f9; padding: 4px; rounded: 12px; margin-bottom: 2rem;">
+            <button id="student-tab" onclick="switchLogin('student')" style="flex: 1; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; background: #fff; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Student</button>
+            <button id="admin-tab" onclick="switchLogin('admin')" style="flex: 1; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; background: transparent; color: #64748b;">Admin</button>
+        </div>
+
+        <h2 id="login-title" style="text-align:center; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p id="login-subtitle" style="text-align:center; color: #64748b; font-size: 0.9rem; margin-bottom: 2rem;">Login to access your CMS dashboard</p>
         
         <?php if(isset($_GET['msg'])): ?>
             <div style="color: green; margin-bottom: 1rem; text-align: center;"><?php echo $_GET['msg']; ?></div>
@@ -59,11 +65,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="login.php" method="POST">
             <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" name="email" required placeholder="student@college.edu">
+                <input type="email" name="email" required placeholder="">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" required placeholder="••••••••">
+                <input type="password" name="password" required placeholder="">
             </div>
             <button type="submit" class="btn-block">Login</button>
         </form>
@@ -71,5 +77,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             Don't have an account? <a href="register.php" style="color: #3b82f6; font-weight: bold;">Register</a>
         </p>
     </div>
+    <script>
+        function switchLogin(type) {
+            const studentTab = document.getElementById('student-tab');
+            const adminTab = document.getElementById('admin-tab');
+            const title = document.getElementById('login-title');
+            const subtitle = document.getElementById('login-subtitle');
+
+            if (type === 'admin') {
+                adminTab.style.background = '#fff';
+                adminTab.style.color = '#2563eb';
+                adminTab.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+                
+                studentTab.style.background = 'transparent';
+                studentTab.style.color = '#64748b';
+                studentTab.style.boxShadow = 'none';
+                
+                title.innerText = 'Admin Portal';
+                subtitle.innerText = 'Access the administrative control panel';
+            } else {
+                studentTab.style.background = '#fff';
+                studentTab.style.color = '#2563eb';
+                studentTab.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+                
+                adminTab.style.background = 'transparent';
+                adminTab.style.color = '#64748b';
+                adminTab.style.boxShadow = 'none';
+                
+                title.innerText = 'Welcome Back';
+                subtitle.innerText = 'Login to access your CMS dashboard';
+            }
+        }
+    </script>
 </body>
 </html>
