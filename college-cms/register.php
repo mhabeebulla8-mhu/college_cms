@@ -15,37 +15,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $university_reg_no = $_POST['university_reg_no'] ?? '';
     $id_card_path = "";
 
-    // File Upload Handling for ID Card
-    if (isset($_FILES['id_card']) && $_FILES['id_card']['error'] == 0) {
-        $target_dir = "uploads/";
-        if (!is_dir($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
-        $file_name = "id_" . time() . "_" . basename($_FILES["id_card"]["name"]);
-        $target_file = $target_dir . $file_name;
-        
-        if (move_uploaded_file($_FILES["id_card"]["tmp_name"], $target_file)) {
-            $id_card_path = $target_file;
-        }
-    }
-
-    // Check if email exists
-    $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $check->bind_param("s", $email);
-    $check->execute();
-    $result = $check->get_result();
-
-    if ($result->num_rows > 0) {
-        $error = "Email already registered!";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid email address.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $name, $email, $password, $role, $university_reg_no, $id_card_path);
-        
-        if ($stmt->execute()) {
-            header("Location: login.php?msg=Registration successful! Please login.");
-            exit();
+        // File Upload Handling for ID Card
+        if (isset($_FILES['id_card']) && $_FILES['id_card']['error'] == 0) {
+            $target_dir = "uploads/";
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+            $file_name = "id_" . time() . "_" . basename($_FILES["id_card"]["name"]);
+            $target_file = $target_dir . $file_name;
+            
+            if (move_uploaded_file($_FILES["id_card"]["tmp_name"], $target_file)) {
+                $id_card_path = $target_file;
+            }
+        }
+
+        // Check if email exists
+        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $check->bind_param("s", $email);
+        $check->execute();
+        $result = $check->get_result();
+
+        if ($result->num_rows > 0) {
+            $error = "Email already registered!";
         } else {
-            $error = "Something went wrong. Please try again.";
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssss", $name, $email, $password, $role, $university_reg_no, $id_card_path);
+            
+            if ($stmt->execute()) {
+                header("Location: login.php?msg=Registration successful! Please login.");
+                exit();
+            } else {
+                $error = "Something went wrong. Please try again.";
+            }
         }
     }
 }

@@ -1,10 +1,13 @@
 <?php
 include 'db.php';
+include 'email_bot.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     header("Location: login.php");
     exit();
 }
+
+$notice = "";
 
 // Handle Status Update
 if (isset($_POST['update_status'])) {
@@ -12,7 +15,26 @@ if (isset($_POST['update_status'])) {
     $status = $_POST['status'];
     $stmt = $conn->prepare("UPDATE complaints SET status = ? WHERE id = ?");
     $stmt->bind_param("si", $status, $id);
-    $stmt->execute();
+
+    if ($stmt->execute()) {
+        $userStmt = $conn->prepare("SELECT u.name, u.email FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.id = ?");
+        $userStmt->bind_param("i", $id);
+        $userStmt->execute();
+        $userResult = $userStmt->get_result();
+        $user = $userResult->fetch_assoc();
+
+        if ($user && isValidEmail($user['email'])) {
+            if (sendComplaintStatusUpdate($user['email'], $user['name'], $id, $status)) {
+                $notice = "Status updated and notification email sent.";
+            } else {
+                $notice = "Status updated, but the notification email could not be sent.";
+            }
+        } else {
+            $notice = "Status updated, but the user email is not valid.";
+        }
+    } else {
+        $notice = "Unable to update complaint status.";
+    }
 }
 
 // Handle Delete
@@ -52,6 +74,11 @@ $result = $conn->query($query);
     </header>
 
     <main class="container" style="margin-top: 3rem;">
+        <?php if ($notice): ?>
+            <div style="background: #dbeafe; color: #1d4ed8; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+                <?php echo htmlspecialchars($notice); ?>
+            </div>
+        <?php endif; ?>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h2>All Complaints</h2>
             

@@ -1,5 +1,6 @@
 <?php
 include 'db.php';
+include 'email_bot.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -20,24 +21,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'];
     $file_path = "";
 
-    // File Upload Handling
-    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
-        $target_dir = "uploads/";
-        $file_name = time() . "_" . basename($_FILES["file"]["name"]);
-        $target_file = $target_dir . $file_name;
-        
-        if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
-            $file_path = $target_file;
-        }
-    }
+    $userStmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+    $userStmt->bind_param("i", $user_id);
+    $userStmt->execute();
+    $userResult = $userStmt->get_result();
+    $user = $userResult->fetch_assoc();
 
-    $stmt = $conn->prepare("INSERT INTO complaints (user_id, category, description, file_path) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $user_id, $category, $description, $file_path);
-
-    if ($stmt->execute()) {
-        $success = "Complaint submitted successfully!";
+    if (!$user || !isValidEmail($user['email'])) {
+        $error = "Your registered email is invalid. Please update your account email before submitting a complaint.";
     } else {
-        $error = "Failed to submit complaint.";
+        // File Upload Handling
+        if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+            $target_dir = "uploads/";
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+            $file_name = time() . "_" . basename($_FILES["file"]["name"]);
+            $target_file = $target_dir . $file_name;
+            
+            if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
+                $file_path = $target_file;
+            }
+        }
+
+        $stmt = $conn->prepare("INSERT INTO complaints (user_id, category, description, file_path) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $user_id, $category, $description, $file_path);
+
+        if ($stmt->execute()) {
+            $complaintId = $stmt->insert_id;
+            $mailSent = sendComplaintNotification($user['email'], $user['name'], $complaintId, $category, $description);
+
+            if ($mailSent) {
+                $success = "Complaint submitted successfully! A confirmation email has been sent to your registered email.";
+            } else {
+                $success = "Complaint submitted successfully! We could not send a confirmation email at this time.";
+            }
+        } else {
+            $error = "Failed to submit complaint.";
+        }
     }
 }
 ?>
