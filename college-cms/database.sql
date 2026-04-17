@@ -29,10 +29,8 @@ CREATE TABLE IF NOT EXISTS complaints (
 
 -- Insert a default admin (Password: admin123)
 -- Note: In a real app, use password_hash() in PHP to generate this.
--- For this script, we'll use a bcrypt hash for 'admin123'.
+-- For this script, we'll assume the PHP registration handles it, 
+-- but here is a manual insert with a hashed password for 'admin123'
 INSERT INTO users (name, email, password, role) 
-VALUES ('System Admin', 'admin@college.edu', '$2b$12$tpF3okFAuMgtka.xMuUbEOHRq29DjddhsVsHil4kxJnkbSTlP/3YK', 'admin')
-ON DUPLICATE KEY UPDATE 
-    name = VALUES(name),
-    password = VALUES(password),
-    role = VALUES(role);
+VALUES ('System Admin', 'admin@college.edu', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
+ON DUPLICATE KEY UPDATE role='admin';

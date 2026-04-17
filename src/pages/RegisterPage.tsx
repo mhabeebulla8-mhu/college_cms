@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { UserPlus, Mail, Lock, User, AlertCircle, ShieldCheck, Hash, FileUp } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, AlertCircle, ShieldCheck, Hash, FileUp, Loader2 } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -14,12 +17,66 @@ export default function RegisterPage() {
   const [role] = useState<'student' | 'admin'>('student');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const verifyIdCard = async (file: File): Promise<boolean> => {
+    try {
+      setVerifying(true);
+      const base64Data = await fileToBase64(file);
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: {
+          parts: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: file.type
+              }
+            },
+            {
+              text: "Does this ID card belong to 'AL AMEEN INSTITUTE OF INFORMATION SCIENCES'? Answer only 'YES' or 'NO'. If the text is clearly visible and matches, say YES. If not, say NO."
+            }
+          ]
+        }
+      });
+
+      return response.text?.trim().toUpperCase() === 'YES';
+    } catch (err) {
+      console.error('Verification error:', err);
+      return false;
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (idCard) {
+      const isValid = await verifyIdCard(idCard);
+      if (!isValid) {
+        setError("Invalid ID Card. This platform only accepts ID cards from 'AL AMEEN INSTITUTE OF INFORMATION SCIENCES'. Please upload a valid ID card.");
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       let idCardPath = '';
 
@@ -159,10 +216,15 @@ export default function RegisterPage() {
 
           <button 
             type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+            disabled={loading || verifying}
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
           >
-            {loading ? 'Creating Account...' : 'Register'}
+            {verifying ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Verifying ID Card...
+              </>
+            ) : loading ? 'Creating Account...' : 'Register'}
           </button>
         </form>
 
