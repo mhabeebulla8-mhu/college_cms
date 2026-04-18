@@ -4,15 +4,57 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { COMPLAINT_CATEGORIES, UserProfile } from '../types';
 import { Send, Upload, AlertCircle, CheckCircle2, FileText } from 'lucide-react';
+import { GoogleGenAI } from "@google/genai";
+import { useSearchParams } from 'react-router-dom';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export default function ComplaintForm({ profile }: { profile: UserProfile }) {
-  const [category, setCategory] = useState('');
+  const [searchParams] = useSearchParams();
+  const urlCategory = searchParams.get('category') || '';
+  
+  const [category, setCategory] = useState(urlCategory);
+  
+  // Update state whenever the URL param changes
+  React.useEffect(() => {
+    setCategory(urlCategory);
+  }, [urlCategory]);
+
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  const sendConfirmationEmail = async () => {
+    try {
+      // Generate a nice email content using Gemini
+      const geminiResponse = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Write a professional and reassuring email to a student named ${profile.name} who just submitted a complaint in the category of "${category}". The email should acknowledge the receipt, mention it will be reviewed soon, and emphasize the college's commitment to safety and fairness. Return ONLY the HTML body of the email.`
+      });
+
+      const emailHtml = geminiResponse.text?.trim() || `
+        <h2>Complaint Received</h2>
+        <p>Dear ${profile.name},</p>
+        <p>Your complaint regarding <strong>${category}</strong> has been successfully submitted and will be reviewed shortly by the relevant committee.</p>
+        <p>Thank you for bringing this to our attention.</p>
+      `;
+
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: profile.email,
+          subject: `Complaint Received: ${category}`,
+          html: emailHtml
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to send notification email:", err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +98,9 @@ export default function ComplaintForm({ profile }: { profile: UserProfile }) {
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, 'complaints');
       }
+
+      // Send confirmation email in background
+      sendConfirmationEmail();
 
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 2000);

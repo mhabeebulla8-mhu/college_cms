@@ -37,30 +37,25 @@
         <div class="main-grid">
             <section class="categories-section">
                 <div class="category-grid">
-                    <div class="category-box" onclick="updatePolicy('Anti-Sexual Harassment Cell')" onmouseover="updatePolicy('Anti-Sexual Harassment Cell')">
-                        <div class="icon">🚨</div>
-                        <h3>Anti-Sexual Harassment Cell</h3>
+                    <?php
+                    $categories = [
+                        "Anti-Sexual Harassment Cell" => "🚨",
+                        "Anti-Ragging Cell" => "👥",
+                        "Anti-Harassment Cell" => "🤝",
+                        "Grievance Cell" => "⚖️",
+                        "Hygiene/Facility Cell" => "🏢",
+                        "Disciplinary Committee" => "🔨"
+                    ];
+                    foreach($categories as $name => $icon):
+                    ?>
+                    <div class="category-box" 
+                         onclick="updatePolicy('<?php echo $name; ?>')" 
+                         onmouseover="updatePolicy('<?php echo $name; ?>')">
+                        <div class="icon"><?php echo $icon; ?></div>
+                        <h3><?php echo $name; ?></h3>
+                        <a href="complaint.php?category=<?php echo urlencode($name); ?>" class="btn-direct-link">Lodge Directly →</a>
                     </div>
-                    <div class="category-box" onclick="updatePolicy('Anti-Ragging Cell')" onmouseover="updatePolicy('Anti-Ragging Cell')">
-                        <div class="icon">👥</div>
-                        <h3>Anti-Ragging Cell</h3>
-                    </div>
-                    <div class="category-box" onclick="updatePolicy('Anti-Harassment Cell')" onmouseover="updatePolicy('Anti-Harassment Cell')">
-                        <div class="icon">🤝</div>
-                        <h3>Anti-Harassment Cell</h3>
-                    </div>
-                    <div class="category-box" onclick="updatePolicy('Grievance Cell')" onmouseover="updatePolicy('Grievance Cell')">
-                        <div class="icon">⚖️</div>
-                        <h3>Grievance Cell</h3>
-                    </div>
-                    <div class="category-box" onclick="updatePolicy('Hygiene/Facility Cell')" onmouseover="updatePolicy('Hygiene/Facility Cell')">
-                        <div class="icon">🏢</div>
-                        <h3>Hygiene/Facility Cell</h3>
-                    </div>
-                    <div class="category-box" onclick="updatePolicy('Disciplinary Committee')" onmouseover="updatePolicy('Disciplinary Committee')">
-                        <div class="icon">🔨</div>
-                        <h3>Disciplinary Committee</h3>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </section>
 
@@ -79,7 +74,7 @@
                     </ul>
 
                     <div class="sidebar-action" style="margin-top: 2rem;">
-                        <a href="complaint.php" class="btn-primary" style="display: block; text-align: center; width: 100%;">Lodge Complaint</a>
+                        <a href="complaint.php" id="lodge-complaint-btn" class="btn-primary" style="display: block; text-align: center; width: 100%;">Lodge Complaint</a>
                     </div>
 
                     <div id="back-btn-container" style="margin-top: 1rem; display: none;">

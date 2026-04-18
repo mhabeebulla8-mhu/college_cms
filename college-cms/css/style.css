@@ -141,6 +141,22 @@ nav {
 .category-box h3 {
     font-size: 1.1rem;
     font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.btn-direct-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: color 0.3s;
+}
+
+.btn-direct-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
 }
 
 .action-bar {

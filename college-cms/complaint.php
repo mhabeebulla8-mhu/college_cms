@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+$initial_category = isset($_GET['category']) ? $_GET['category'] : "";
 if ($_SESSION['role'] == 'admin') {
     header("Location: admin.php");
     exit();
@@ -36,6 +37,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($stmt->execute()) {
         $success = "Complaint submitted successfully!";
+        
+        // Send email notification (XAMPP/PHP version)
+        $to = $_SESSION['email'];
+        $subject = "Complaint Received: $category";
+        $message = "Dear " . $_SESSION['name'] . ",\n\n";
+        $message .= "Your complaint regarding $category has been successfully submitted and will be reviewed shortly by the relevant committee.\n\n";
+        $message .= "Thank you for bringing this to our attention.\n";
+        $headers = "From: " . EMAIL_FROM;
+
+        // Note: mail() might require SMTP setup in XAMPP (php.ini)
+        if (!@mail($to, $subject, $message, $headers)) {
+            error_log("Failed to send email to $to. Check XAMPP sendmail logs.");
+        }
     } else {
         $error = "Failed to submit complaint.";
     }
@@ -84,12 +98,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>Complaint Category</label>
                 <select name="category" required>
                     <option value="">Select a category</option>
-                    <option value="Anti-Sexual Harassment Cell">Anti-Sexual Harassment Cell</option>
-                    <option value="Anti-Ragging Cell">Anti-Ragging Cell</option>
-                    <option value="Anti-Harassment Cell">Anti-Harassment Cell</option>
-                    <option value="Grievance Cell">Grievance Cell</option>
-                    <option value="Hygiene/Facility Cell">Hygiene/Facility Cell</option>
-                    <option value="Disciplinary Committee">Disciplinary Committee</option>
+                    <?php
+                    $categories = [
+                        "Anti-Sexual Harassment Cell",
+                        "Anti-Ragging Cell",
+                        "Anti-Harassment Cell",
+                        "Grievance Cell",
+                        "Hygiene/Facility Cell",
+                        "Disciplinary Committee"
+                    ];
+                    foreach($categories as $cat) {
+                        $selected = (strcasecmp($initial_category, $cat) == 0) ? 'selected' : '';
+                        echo "<option value=\"$cat\" $selected>$cat</option>";
+                    }
+                    ?>
                 </select>
             </div>
             <div class="form-group">
@@ -103,5 +125,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="submit" class="btn-block">Submit Complaint</button>
         </form>
     </div>
+
+    <script>
+        // Safety net: Force selection from URL if PHP missed it
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('category');
+            if (category) {
+                console.log("Attempting to pre-fill category:", category);
+                const select = document.querySelector('select[name="category"]');
+                if (select) {
+                    const decodedCategory = decodeURIComponent(category).trim().toLowerCase();
+                    for (let i = 0; i < select.options.length; i++) {
+                        const optionValue = select.options[i].value.trim().toLowerCase();
+                        if (optionValue === decodedCategory) {
+                            select.selectedIndex = i;
+                            console.log("Successfully selected option:", i);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

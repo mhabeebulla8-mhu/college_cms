@@ -26,6 +26,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (move_uploaded_file($_FILES["id_card"]["tmp_name"], $target_file)) {
             $id_card_path = $target_file;
+
+            // AI ID Verification (Gemini)
+            if (defined('GEMINI_API_KEY') && GEMINI_API_KEY !== 'your-gemini-api-key') {
+                $image_data = base64_encode(file_get_contents($target_file));
+                $mime_type = $_FILES['id_card']['type'];
+                
+                $prompt = "Does this ID card belong to 'AL AMEEN INSTITUTE OF INFORMATION SCIENCES'? Answer only 'YES' or 'NO'. If the text is clearly visible and matches, say YES. If not, say NO.";
+                
+                $data = [
+                    "contents" => [
+                        [
+                            "parts" => [
+                                ["inline_data" => ["mime_type" => $mime_type, "data" => $image_data]],
+                                ["text" => $prompt]
+                            ]
+                        ]
+                    ]
+                ];
+
+                $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . GEMINI_API_KEY);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                
+                $response = curl_exec($ch);
+                $result_ai = json_decode($response, true);
+                curl_close($ch);
+
+                $answer = $result_ai['candidates'][0]['content']['parts'][0]['text'] ?? 'NO';
+                
+                if (trim(strtoupper($answer)) !== 'YES') {
+                    unlink($target_file); // Delete the invalid ID
+                    $error = "Invalid ID Card! This platform only accepts students from 'AL AMEEN INSTITUTE OF INFORMATION SCIENCES'.";
+                    // Stop registration
+                    goto render_page;
+                }
+            }
         }
     }
 
@@ -49,6 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+render_page:
 ?>
 <!DOCTYPE html>
 <html lang="en">

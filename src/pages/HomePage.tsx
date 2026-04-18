@@ -115,7 +115,7 @@ export default function HomePage() {
                 transition={{ delay: index * 0.1 }}
                 onClick={() => setSelectedCategory(category)}
                 onMouseOver={() => setSelectedCategory(category)}
-                className={`p-6 rounded-2xl border transition-all group cursor-pointer ${
+                className={`p-6 rounded-2xl border transition-all group cursor-pointer relative ${
                   selectedCategory === category 
                     ? 'bg-blue-50 border-blue-400 shadow-md ring-2 ring-blue-200' 
                     : 'bg-white border-slate-200 shadow-sm hover:shadow-md'
@@ -127,7 +127,16 @@ export default function HomePage() {
                   {categoryIcons[category]}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{category}</h3>
-                <p className="text-sm text-slate-500">Click to view specific guidelines for {category.toLowerCase()}.</p>
+                <p className="text-sm text-slate-500 mb-4">Click to view specific guidelines for {category.toLowerCase()}.</p>
+                
+                <Link 
+                  to={`/lodge-complaint?category=${encodeURIComponent(category)}`}
+                  className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Lodge Directly
+                  <ArrowRight className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" />
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -164,7 +173,7 @@ export default function HomePage() {
 
             <div className="pt-4 flex flex-col gap-4">
               <Link 
-                to="/lodge-complaint" 
+                to={`/lodge-complaint${selectedCategory !== 'General' ? `?category=${encodeURIComponent(selectedCategory)}` : ''}`} 
                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-center hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 Lodge Complaint

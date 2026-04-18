@@ -99,6 +99,16 @@ function updatePolicy(category) {
     // Show/hide back button
     const backBtn = document.getElementById('back-btn-container');
     backBtn.style.display = category === 'General' ? 'none' : 'block';
+    
+    // Update Lodge Complaint link
+    const lodgeBtn = document.getElementById('lodge-complaint-btn');
+    if (lodgeBtn) {
+        if (category === 'General') {
+            lodgeBtn.href = 'complaint.php';
+        } else {
+            lodgeBtn.href = 'complaint.php?category=' + encodeURIComponent(category);
+        }
+    }
 
     // Highlight selected box
     const boxes = document.querySelectorAll('.category-box');
