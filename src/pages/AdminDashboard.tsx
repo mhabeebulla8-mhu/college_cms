@@ -32,9 +32,26 @@ export default function AdminDashboard({ profile }: { profile: UserProfile }) {
     return () => unsubscribe();
   }, []);
 
-  const handleStatusUpdate = async (complaintId: string, newStatus: ComplaintStatus) => {
+  const handleStatusUpdate = async (complaintId: string, newStatus: ComplaintStatus, complaint: Complaint) => {
     try {
       await updateDoc(doc(db, 'complaints', complaintId), { status: newStatus });
+      
+      if (newStatus === 'Resolved') {
+        const userDoc = await import('firebase/firestore').then(m => m.getDoc(m.doc(db, 'users', complaint.userId)));
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as UserProfile;
+          await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: userData.email,
+              subject: `Complaint Resolved: ${complaint.category}`,
+              html: `<p>Hello ${complaint.studentName},</p><p>Your complaint regarding <strong>${complaint.category}</strong> has been marked as <strong>Resolved</strong> by the administration.</p><p>Thank you for bringing this to our attention.</p><p>College Admin</p>`
+            })
+          });
+          alert('Status updated and email sent to the student!');
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `complaints/${complaintId}`);
     }
@@ -131,7 +148,7 @@ export default function AdminDashboard({ profile }: { profile: UserProfile }) {
                       <div className="relative">
                         <select
                           value={complaint.status}
-                          onChange={(e) => handleStatusUpdate(complaint.id, e.target.value as ComplaintStatus)}
+                          onChange={(e) => handleStatusUpdate(complaint.id, e.target.value as ComplaintStatus, complaint)}
                           className={`pl-4 pr-8 py-1.5 rounded-full text-xs font-bold border appearance-none cursor-pointer transition-all ${statusColors[complaint.status]}`}
                         >
                           <option value="Pending">Pending</option>

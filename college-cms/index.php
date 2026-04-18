@@ -49,11 +49,11 @@
                     foreach($categories as $name => $icon):
                     ?>
                     <div class="category-box" 
-                         onclick="updatePolicy('<?php echo $name; ?>')" 
+                         onclick="window.location.href='complaint.php?category=<?php echo rawurlencode($name); ?>'" 
                          onmouseover="updatePolicy('<?php echo $name; ?>')">
                         <div class="icon"><?php echo $icon; ?></div>
                         <h3><?php echo $name; ?></h3>
-                        <a href="complaint.php?category=<?php echo urlencode($name); ?>" class="btn-direct-link">Lodge Directly →</a>
+                        <a href="complaint.php?category=<?php echo rawurlencode($name); ?>" class="btn-direct-link" onclick="event.stopPropagation()">Lodge Directly →</a>
                     </div>
                     <?php endforeach; ?>
                 </div>

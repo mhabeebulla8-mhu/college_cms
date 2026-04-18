@@ -12,7 +12,22 @@ if (isset($_POST['update_status'])) {
     $status = $_POST['status'];
     $stmt = $conn->prepare("UPDATE complaints SET status = ? WHERE id = ?");
     $stmt->bind_param("si", $status, $id);
-    $stmt->execute();
+    if ($stmt->execute()) {
+        if ($status == 'Resolved') {
+            // Get user email to notify
+            $stmt_user = $conn->prepare("SELECT u.email, u.name, c.category FROM complaints c JOIN users u ON c.user_id = u.id WHERE c.id = ?");
+            $stmt_user->bind_param("i", $id);
+            $stmt_user->execute();
+            $result_user = $stmt_user->get_result();
+            if ($row = $result_user->fetch_assoc()) {
+                $to = $row['email'];
+                $subject = "Complaint Resolved: " . $row['category'];
+                $message = "Hello " . $row['name'] . ",\n\nYour complaint regarding '" . $row['category'] . "' has been marked as Resolved by the administration.\n\nThank you for bringing this to our attention.\n\nCollege Admin";
+                $headers = "From: " . EMAIL_USER;
+                mail($to, $subject, $message, $headers);
+            }
+        }
+    }
 }
 
 // Handle Delete

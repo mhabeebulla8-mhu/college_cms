@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { COMPLAINT_CATEGORIES } from '../types';
 import { ShieldAlert, Users, HeartHandshake, Scale, Building2, Gavel, ArrowRight, Info, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -81,6 +81,7 @@ const categoryPolicies: Record<string, { description: string, guidelines: string
 };
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>("General");
 
   const currentPolicy = categoryPolicies[selectedCategory] || categoryPolicies["General"];
@@ -113,7 +114,10 @@ export default function HomePage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  navigate(`/lodge-complaint?category=${encodeURIComponent(category)}`);
+                }}
                 onMouseOver={() => setSelectedCategory(category)}
                 className={`p-6 rounded-2xl border transition-all group cursor-pointer relative ${
                   selectedCategory === category 

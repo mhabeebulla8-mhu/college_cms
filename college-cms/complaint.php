@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "Disciplinary Committee"
                     ];
                     foreach($categories as $cat) {
-                        $selected = (strcasecmp($initial_category, $cat) == 0) ? 'selected' : '';
+                        $selected = (strcasecmp(trim($initial_category), trim($cat)) == 0) ? 'selected' : '';
                         echo "<option value=\"$cat\" $selected>$cat</option>";
                     }
                     ?>
@@ -130,17 +130,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Safety net: Force selection from URL if PHP missed it
         window.addEventListener('DOMContentLoaded', (event) => {
             const urlParams = new URLSearchParams(window.location.search);
-            const category = urlParams.get('category');
+            let category = urlParams.get('category');
+            
             if (category) {
-                console.log("Attempting to pre-fill category:", category);
                 const select = document.querySelector('select[name="category"]');
                 if (select) {
-                    const decodedCategory = decodeURIComponent(category).trim().toLowerCase();
+                    // Try exact match first
+                    const normalizedTarget = category.trim().toLowerCase();
+                    
                     for (let i = 0; i < select.options.length; i++) {
                         const optionValue = select.options[i].value.trim().toLowerCase();
-                        if (optionValue === decodedCategory) {
+                        if (optionValue === normalizedTarget) {
                             select.selectedIndex = i;
-                            console.log("Successfully selected option:", i);
                             break;
                         }
                     }

@@ -8,7 +8,7 @@ $dbname = "college_cms";
 // Email Secrets (For XAMPP/PHP)
 // Use an App Password from https://myaccount.google.com/apppasswords
 define('EMAIL_USER', 'mhabeebulla8@gmail.com');
-define('EMAIL_PASS', 'kdnv nxds mree kiei');
+define('EMAIL_PASS', 'kdnvnxdsmreekiei');
 define('EMAIL_FROM', 'MSc/BCA College Support <mhabeebulla8@gmail.com>');
 
 // Gemini AI Secret (For XAMPP/PHP)
