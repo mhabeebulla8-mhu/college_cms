@@ -101,6 +101,9 @@ $result = $conn->query($query);
                                 <td>
                                     <div style="font-weight: 700;"><?php echo $row['student_name']; ?></div>
                                     <div style="font-size: 0.7rem; color: #94a3b8;"><?php echo date('d M, h:i A', strtotime($row['created_at'])); ?></div>
+                                    <?php if($row['forwarded_to_main']): ?>
+                                        <span style="font-size: 0.65rem; background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-top: 4px; display: inline-block;">FORWARDED BY DEPT</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td style="font-size: 0.8rem; font-weight: 600;"><?php echo $row['category']; ?></td>
                                 <td style="max-width: 300px; font-size: 0.9rem;"><?php echo $row['description']; ?></td>

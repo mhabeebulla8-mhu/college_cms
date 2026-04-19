@@ -26,6 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             if ($user['role'] == 'admin') {
                 header("Location: admin.php");
+            } elseif ($user['role'] == 'dept_admin') {
+                header("Location: dept_admin.php");
             } else {
                 header("Location: dashboard.php");
             }
