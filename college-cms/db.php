@@ -5,6 +5,9 @@ $username = "root";
 $password = "";
 $dbname = "college_cms";
 
+// Base URL for generating links (use your local IP so mobile devices can access it)
+define('SITE_URL', 'http://10.18.62.222/college-cms');
+
 // Email Secrets (For XAMPP/PHP)
 // Use an App Password from https://myaccount.google.com/apppasswords
 define('EMAIL_USER', 'mhabeebulla8@gmail.com');

@@ -112,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             // Send Verification Email
             require_once 'mailer.php';
-            $verify_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/verify_email.php?token=" . $token;
+            $verify_link = SITE_URL . "/verify_email.php?token=" . $token;
             $subject = "Verify your Account - College CMS";
             $message = "
                 <h2>Welcome to College CMS</h2>
