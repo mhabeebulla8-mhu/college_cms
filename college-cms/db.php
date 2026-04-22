@@ -1,6 +1,6 @@
 <?php
 // Database configuration
-$host = "localhost";
+$host = "127.0.0.1:3307";
 $username = "root";
 $password = "";
 $dbname = "college_cms";

@@ -9,8 +9,27 @@ if (isset($_SESSION['user_id'])) {
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
-    $email = $_POST['email'];
+    $email = trim($_POST['email']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    // 1. Basic Format Validation
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email format!";
+        goto render_page;
+    }
+
+    // 2. Strict Gmail Domain Validation
+    if (!str_ends_with(strtolower($email), '@gmail.com')) {
+        $error = "Only @gmail.com addresses are allowed!";
+        goto render_page;
+    }
+
+    // 3. Verify Domain exists (Checks MX records)
+    $domain = substr($email, strpos($email, '@') + 1);
+    if (!checkdnsrr($domain, 'MX')) {
+        $error = "The email domain does not appear to be real or cannot receive mail.";
+        goto render_page;
+    }
     $role = 'student';
     $university_reg_no = $_POST['university_reg_no'] ?? '';
     $id_card_path = "";
@@ -76,14 +95,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $error = "Email already registered!";
     } else {
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path) VALUES (?, ?, ?, ?, ?, ?)");
+        // Insert user (not verified yet)
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0)");
         $stmt->bind_param("ssssss", $name, $email, $password, $role, $university_reg_no, $id_card_path);
         
         if ($stmt->execute()) {
-            header("Location: login.php?msg=Registration successful! Please login.");
-            exit();
+            $user_id = $stmt->insert_id;
+            
+            // Generate verification token
+            $token = bin2hex(random_bytes(32));
+            $expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
+            
+            $stmt_v = $conn->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)");
+            $stmt_v->bind_param("iss", $user_id, $token, $expires_at);
+            $stmt_v->execute();
+            
+            // Send Verification Email
+            require_once 'mailer.php';
+            $verify_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/verify_email.php?token=" . $token;
+            $subject = "Verify your Account - College CMS";
+            $message = "
+                <h2>Welcome to College CMS</h2>
+                <p>Hello $name, please click the link below to verify your email address and complete your registration:</p>
+                <p><a href='$verify_link' style='padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;'>Verify Email</a></p>
+                <p>This link will expire in 24 hours.</p>
+            ";
+            
+            if (sendMail($email, $subject, $message)) {
+                header("Location: login.php?msg=" . urlencode("Registration successful! Please check your email to verify your account."));
+                exit();
+            } else {
+                $error = "Registration successful, but failed to send verification email. Please contact support.";
+            }
         } else {
-            $error = "Something went wrong. Please try again.";
+            $error = "Registration failed: " . $conn->error;
         }
     }
 }
@@ -111,8 +156,8 @@ render_page:
                 <input type="text" name="name" required placeholder="">
             </div>
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" name="email" required placeholder="">
+                <label>Email Address (@gmail.com only)</label>
+                <input type="email" name="email" required placeholder="example@gmail.com" pattern="[a-zA-Z0-9._%+-]+@gmail\.com$">
             </div>
             <div class="form-group">
                 <label>University Reg No</label>
