@@ -92,7 +92,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         <?php if($error): ?>
             <div style="color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #fecaca;">
-                <?php echo $error; ?>
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php elseif(isset($_GET['error'])): ?>
+            <div style="color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #fecaca;">
+                <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+        <?php elseif(isset($_GET['msg'])): ?>
+            <div style="color: #059669; background: #ecfdf5; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #10b981;">
+                <?php echo htmlspecialchars($_GET['msg']); ?>
             </div>
         <?php endif; ?>
 
