@@ -72,7 +72,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 $response = curl_exec($ch);
                 $result_ai = json_decode($response, true);
-                curl_close($ch);
+                
+                if (is_resource($ch) || (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80000 && $ch instanceof \CurlHandle)) {
+                    curl_close($ch);
+                }
 
                 $answer = $result_ai['candidates'][0]['content']['parts'][0]['text'] ?? 'NO';
                 

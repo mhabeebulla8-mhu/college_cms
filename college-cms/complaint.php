@@ -1,5 +1,6 @@
 <?php
 include 'db.php';
+include 'mailer.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -38,18 +39,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $success = "Complaint submitted successfully!";
         
-        // Send email notification (XAMPP/PHP version)
+        // Use Gemini AI to generate a nice email if available
+        $studentName = $_SESSION['name'];
+        $emailBody = generateGeminiEmail($studentName, $category);
+        
+        if (!$emailBody) {
+            // Fallback content if AI fails or key is missing
+            $emailBody = "
+                <h2>Complaint Received</h2>
+                <p>Dear $studentName,</p>
+                <p>Your complaint regarding <strong>$category</strong> has been successfully submitted and will be reviewed shortly by the relevant committee.</p>
+                <p>Thank you for bringing this to our attention.</p>
+            ";
+        }
+        
         $to = $_SESSION['email'];
         $subject = "Complaint Received: $category";
-        $message = "Dear " . $_SESSION['name'] . ",\n\n";
-        $message .= "Your complaint regarding $category has been successfully submitted and will be reviewed shortly by the relevant committee.\n\n";
-        $message .= "Thank you for bringing this to our attention.\n";
-        $headers = "From: " . EMAIL_FROM;
-
-        // Note: mail() might require SMTP setup in XAMPP (php.ini)
-        if (!@mail($to, $subject, $message, $headers)) {
-            error_log("Failed to send email to $to. Check XAMPP sendmail logs.");
-        }
+        
+        // Use PHPMailer via the sendMail function
+        sendMail($to, $subject, $emailBody);
     } else {
         $error = "Failed to submit complaint.";
     }

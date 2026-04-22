@@ -78,8 +78,16 @@ const categoryPolicies = {
     }
 };
 
-function updatePolicy(category) {
+let isLocked = false;
+
+function updatePolicy(category, force = false) {
+    if (isLocked && !force) return;
+    
     const policy = categoryPolicies[category] || categoryPolicies["General"];
+    
+    if (force) {
+        isLocked = true;
+    }
     
     // Update text content
     document.getElementById('policy-title').innerText = policy.title;
@@ -98,7 +106,11 @@ function updatePolicy(category) {
 
     // Show/hide back button
     const backBtn = document.getElementById('back-btn-container');
-    backBtn.style.display = category === 'General' ? 'none' : 'block';
+    backBtn.style.display = (category === 'General' || !isLocked) ? 'none' : 'block';
+    
+    if (category === 'General') {
+        isLocked = false;
+    }
     
     // Update Lodge Complaint link
     const lodgeBtn = document.getElementById('lodge-complaint-btn');
