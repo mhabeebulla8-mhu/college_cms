@@ -19,10 +19,11 @@
                 <li><a href="index.php">Home</a></li>
                 <li><a href="#policy">Policy</a></li>
                 <?php if(isset($_SESSION['user_id'])): ?>
-                    <li><a href="<?php echo $_SESSION['role'] == 'admin' ? 'admin.php' : 'dashboard.php'; ?>">Dashboard</a></li>
+                    <li><a href="<?php echo ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'dept_admin') ? ($_SESSION['role'] == 'admin' ? 'admin.php' : 'dept_admin.php') : 'dashboard.php'; ?>">Dashboard</a></li>
                     <li><a href="logout.php" class="btn-login">Logout</a></li>
                 <?php else: ?>
-                    <li><a href="login.php" class="btn-login">Login</a></li>
+                    <li><a href="login.php" class="btn-login">Student Login</a></li>
+                    <li><a href="admin_login.php" style="color: #94a3b8; font-size: 0.8rem; margin-left: 10px;">Admin Access</a></li>
                 <?php endif; ?>
             </ul>
         </nav>

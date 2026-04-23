@@ -10,7 +10,40 @@ $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
     $email = trim($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $plain_password = $_POST['password'];
+
+    // --- Password Validation Rules ---
+    if (strlen($plain_password) < 8) {
+        $error = "Password must be at least 8 characters long!";
+        goto render_page;
+    }
+    // 2. Must start with an uppercase letter
+    if (!preg_match('/^[A-Z]/', $plain_password)) {
+        $error = "Password must start with an uppercase (capital) letter!";
+        goto render_page;
+    }
+    // 3. Must contain at least one lowercase letter
+    if (!preg_match('/[a-z]/', $plain_password)) {
+        $error = "Password must contain at least one lowercase letter!";
+        goto render_page;
+    }
+    // 4. Must contain at least one uppercase letter (already covered by start, but good for completeness)
+    if (!preg_match('/[A-Z]/', $plain_password)) {
+        $error = "Password must contain at least one uppercase letter!";
+        goto render_page;
+    }
+    // 5. Must contain at least one number
+    if (!preg_match('/[0-9]/', $plain_password)) {
+        $error = "Password must contain at least one number!";
+        goto render_page;
+    }
+    // 6. Must contain at least one special character
+    if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $plain_password)) {
+        $error = "Password must contain at least one special character (e.g., !@#$%^&*)!";
+        goto render_page;
+    }
+
+    $password = password_hash($plain_password, PASSWORD_DEFAULT);
 
     // 1. Basic Format Validation
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -19,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 2. Strict Gmail Domain Validation
-    if (!str_ends_with(strtolower($email), '@gmail.com')) {
+    if (substr(strtolower($email), -10) !== '@gmail.com') {
         $error = "Only @gmail.com addresses are allowed!";
         goto render_page;
     }
@@ -124,12 +157,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <p>This link will expire in 24 hours.</p>
             ";
             
-            if (sendMail($email, $subject, $message)) {
+            $mailSent = sendMail($email, $subject, $message);
+            if ($mailSent) {
                 header("Location: login.php?msg=" . urlencode("Registration successful! Please check your email to verify your account."));
-                exit();
             } else {
-                $error = "Registration successful, but failed to send verification email. Please contact support.";
+                // Do not block registration if SMTP is slow/misconfigured.
+                header("Location: login.php?msg=" . urlencode("Registration successful. Email sending failed, so contact admin to verify your account."));
             }
+            exit();
         } else {
             $error = "Registration failed: " . $conn->error;
         }
@@ -173,6 +208,12 @@ render_page:
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" name="password" required placeholder="">
+                <ul style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; list-style: inside;">
+                    <li>At least 8 characters</li>
+                    <li>Starts with uppercase letter</li>
+                    <li>Contains lowercase & number</li>
+                    <li>Contains special character (!@#$)</li>
+                </ul>
             </div>
             <button type="submit" class="btn-block">Register</button>
         </form>

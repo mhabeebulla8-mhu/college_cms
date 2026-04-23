@@ -1,0 +1,11 @@
+{
+    "intelephense.files.exclude": [
+        "**/vendor/**"
+    ],
+    "php.validate.exclude": [
+        "**/vendor/**"
+    ],
+    "intelephense.diagnostics.deprecated.exclude": [
+        "curl_close"
+    ]
+}

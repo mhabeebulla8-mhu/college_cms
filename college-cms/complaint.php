@@ -1,6 +1,13 @@
 <?php
 include 'db.php';
-include 'mailer.php';
+require_once 'mailer.php';
+
+// Fallback to prevent fatal errors if mailer helpers are unavailable.
+if (!function_exists('analyzePriority')) {
+    function analyzePriority($description, $category) {
+        return 'Medium';
+    }
+}
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -18,7 +25,10 @@ $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category = $_POST['category'];
+    $subcategory = $_POST['subcategory'] ?? "";
+    $is_anonymous = isset($_POST['is_anonymous']) ? 1 : 0;
     $description = $_POST['description'];
+    $priority = analyzePriority($description, $category);
     $user_id = $_SESSION['user_id'];
     $file_path = "";
 
@@ -33,8 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    $stmt = $conn->prepare("INSERT INTO complaints (user_id, category, description, file_path) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $user_id, $category, $description, $file_path);
+    $stmt = $conn->prepare("INSERT INTO complaints (user_id, category, subcategory, is_anonymous, description, file_path, priority) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ississs", $user_id, $category, $subcategory, $is_anonymous, $description, $file_path, $priority);
 
     if ($stmt->execute()) {
         $success = "Complaint submitted successfully!";
@@ -104,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="complaint.php" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label>Complaint Category</label>
-                <select name="category" required>
+                <select name="category" id="categorySelect" required onchange="updateSubcategories()">
                     <option value="">Select a category</option>
                     <?php
                     $categories = [
@@ -123,6 +133,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </select>
             </div>
             <div class="form-group">
+                <label>Specific Sub-category</label>
+                <select name="subcategory" id="subcategorySelect" required>
+                    <option value="">Select a sub-category</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Description</label>
                 <textarea name="description" rows="6" required placeholder="Describe your complaint..."></textarea>
             </div>
@@ -130,26 +146,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label>Supporting Document (Optional)</label>
                 <input type="file" name="file" accept="image/*,.pdf">
             </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; padding: 1rem; border-radius: 1rem; border: 1px dashed #cbd5e1;">
+                <input type="checkbox" name="is_anonymous" id="is_anonymous" style="width: 1.2rem; height: 1.2rem; cursor: pointer;">
+                <label for="is_anonymous" style="cursor: pointer; margin-bottom: 0;">
+                    <strong>Submit Anonymously</strong>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Your identity will be hidden from the administration.</p>
+                </label>
+            </div>
             <button type="submit" class="btn-block">Submit Complaint</button>
         </form>
     </div>
 
+    <script src="js/main.js"></script>
     <script>
+        const subcats = {
+            "Anti-Sexual Harassment Cell": ["Physical Harassment", "Verbal Misconduct", "Digital/Online Harassment", "Stalking", "Gender Discrimination"],
+            "Anti-Ragging Cell": ["Physical Ragging", "Psychological Bullying", "Financial Extortion", "Hostel-related Ragging", "Forceful Activities"],
+            "Anti-Harassment Cell": ["Cyber Bullying", "Verbal Abuse", "Social Exclusion", "Teacher/Staff Misconduct", "Discrimination (Caste/Religion)"],
+            "Grievance Cell": ["Internal Marks Issue", "Attendance Error", "Exam Schedule Conflict", "Certificate/Document Delay", "Admission Grievance"],
+            "Hygiene/Facility Cell": ["Washroom Cleanliness", "Canteen Food Quality", "Drinking Water Issue", "Classroom/Lab Infrastructure", "Library Facilities"],
+            "Disciplinary Committee": ["Dress Code Violation", "Mobile Phone Misuse", "Theft/Damage to Property", "Banned Substance Possession", "Fights/Physical Altercations"]
+        };
+
+        function updateSubcategories() {
+            const category = document.getElementById('categorySelect').value;
+            const subSelect = document.getElementById('subcategorySelect');
+            subSelect.innerHTML = '<option value="">Select a sub-category</option>';
+            
+            if (category && subcats[category]) {
+                subcats[category].forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    subSelect.appendChild(opt);
+                });
+            }
+        }
+
         // Safety net: Force selection from URL if PHP missed it
         window.addEventListener('DOMContentLoaded', (event) => {
             const urlParams = new URLSearchParams(window.location.search);
             let category = urlParams.get('category');
             
             if (category) {
-                const select = document.querySelector('select[name="category"]');
+                const select = document.getElementById('categorySelect');
                 if (select) {
-                    // Try exact match first
                     const normalizedTarget = category.trim().toLowerCase();
-                    
                     for (let i = 0; i < select.options.length; i++) {
-                        const optionValue = select.options[i].value.trim().toLowerCase();
-                        if (optionValue === normalizedTarget) {
+                        if (select.options[i].value.trim().toLowerCase() === normalizedTarget) {
                             select.selectedIndex = i;
+                            updateSubcategories();
                             break;
                         }
                     }
