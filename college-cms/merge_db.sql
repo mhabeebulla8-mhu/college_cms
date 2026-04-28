@@ -25,6 +25,9 @@ ALTER TABLE complaints ADD COLUMN IF NOT EXISTS subcategory_id INT;
 ALTER TABLE complaints ADD COLUMN IF NOT EXISTS subject VARCHAR(255);
 ALTER TABLE complaints ADD COLUMN IF NOT EXISTS is_anonymous TINYINT(1) DEFAULT 0;
 ALTER TABLE complaints ADD COLUMN IF NOT EXISTS remarks TEXT;
+ALTER TABLE complaints MODIFY COLUMN status ENUM('Pending', 'In Progress', 'Under Review', 'Resolved') DEFAULT 'Pending';
+ALTER TABLE complaints ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE complaints ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP NULL DEFAULT NULL;
 
 -- 4. Insert some sample data
 -- Password is md5('dept123') = 'd5668e1694f79607f23c72782e4431ef'

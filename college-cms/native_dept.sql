@@ -8,6 +8,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100) DEFAULT NULL;
 -- 2. Add features to Complaints
 ALTER TABLE complaints ADD COLUMN IF NOT EXISTS remarks TEXT DEFAULT NULL;
 ALTER TABLE complaints ADD COLUMN IF NOT EXISTS forwarded_to_main TINYINT(1) DEFAULT 0;
+ALTER TABLE complaints MODIFY COLUMN status ENUM('Pending', 'In Progress', 'Under Review', 'Resolved') DEFAULT 'Pending';
+ALTER TABLE complaints ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE complaints ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP NULL DEFAULT NULL;
 
 -- 3. Create a test Department Admin
 -- Password: dept123

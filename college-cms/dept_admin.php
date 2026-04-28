@@ -22,7 +22,14 @@ if (isset($_POST['update_complaint'])) {
     $status = $_POST['status'];
     $remarks = $_POST['remarks'];
     
-    $stmt = $conn->prepare("UPDATE complaints SET status = ?, remarks = ? WHERE id = ?");
+    $updateSql = "UPDATE complaints SET status = ?, remarks = ? WHERE id = ?";
+    if ($status === 'Under Review' || $status === 'In Progress') {
+        $updateSql = "UPDATE complaints SET status = ?, remarks = ?, reviewed_at = COALESCE(reviewed_at, CURRENT_TIMESTAMP) WHERE id = ?";
+    } elseif ($status === 'Resolved') {
+        $updateSql = "UPDATE complaints SET status = ?, remarks = ?, resolved_at = COALESCE(resolved_at, CURRENT_TIMESTAMP) WHERE id = ?";
+    }
+
+    $stmt = $conn->prepare($updateSql);
     $stmt->bind_param("ssi", $status, $remarks, $id);
     $stmt->execute();
     
@@ -121,7 +128,7 @@ $result = $conn->query($query);
                 <select name="status" onchange="this.form.submit()" style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
                     <option value="">All Status</option>
                     <option value="Pending" <?php if(isset($_GET['status']) && $_GET['status'] == 'Pending') echo 'selected'; ?>>Pending</option>
-                    <option value="In Progress" <?php if(isset($_GET['status']) && $_GET['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
+                    <option value="Under Review" <?php if(isset($_GET['status']) && ($_GET['status'] == 'Under Review' || $_GET['status'] == 'In Progress')) echo 'selected'; ?>>Under Review</option>
                     <option value="Resolved" <?php if(isset($_GET['status']) && $_GET['status'] == 'Resolved') echo 'selected'; ?>>Resolved</option>
                 </select>
             </form>
@@ -160,7 +167,7 @@ $result = $conn->query($query);
                                         <div style="margin-bottom: 0.5rem;">
                                             <select name="status" style="width: 100%; padding: 0.25rem;">
                                                 <option value="Pending" <?php if($row['status'] == 'Pending') echo 'selected'; ?>>Pending</option>
-                                                <option value="In Progress" <?php if($row['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
+                                                <option value="Under Review" <?php if($row['status'] == 'Under Review' || $row['status'] == 'In Progress') echo 'selected'; ?>>Under Review</option>
                                                 <option value="Resolved" <?php if($row['status'] == 'Resolved') echo 'selected'; ?>>Resolved</option>
                                             </select>
                                         </div>

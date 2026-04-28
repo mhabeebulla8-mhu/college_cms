@@ -10,7 +10,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 if (isset($_POST['update_status'])) {
     $id = $_POST['complaint_id'];
     $status = $_POST['status'];
-    $stmt = $conn->prepare("UPDATE complaints SET status = ? WHERE id = ?");
+    $updateSql = "UPDATE complaints SET status = ? WHERE id = ?";
+    if ($status === 'Under Review' || $status === 'In Progress') {
+        $updateSql = "UPDATE complaints SET status = ?, reviewed_at = COALESCE(reviewed_at, CURRENT_TIMESTAMP) WHERE id = ?";
+    } elseif ($status === 'Resolved') {
+        $updateSql = "UPDATE complaints SET status = ?, resolved_at = COALESCE(resolved_at, CURRENT_TIMESTAMP) WHERE id = ?";
+    }
+
+    $stmt = $conn->prepare($updateSql);
     $stmt->bind_param("si", $status, $id);
     if ($stmt->execute()) {
         if ($status == 'Resolved') {
@@ -112,7 +119,7 @@ $result = $conn->query($query);
                                         <input type="hidden" name="complaint_id" value="<?php echo $row['id']; ?>">
                                         <select name="status" style="font-size: 0.75rem; padding: 0.25rem;">
                                             <option value="Pending" <?php if($row['status'] == 'Pending') echo 'selected'; ?>>Pending</option>
-                                            <option value="In Progress" <?php if($row['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
+                                            <option value="Under Review" <?php if($row['status'] == 'Under Review' || $row['status'] == 'In Progress') echo 'selected'; ?>>Under Review</option>
                                             <option value="Resolved" <?php if($row['status'] == 'Resolved') echo 'selected'; ?>>Resolved</option>
                                         </select>
                                         <button type="submit" name="update_status" style="background: #3b82f6; color: #fff; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.7rem;">Update</button>

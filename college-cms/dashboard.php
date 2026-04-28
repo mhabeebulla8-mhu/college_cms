@@ -9,6 +9,39 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'student') {
 $user_id = $_SESSION['user_id'];
 $query = "SELECT * FROM complaints WHERE user_id = $user_id ORDER BY created_at DESC";
 $result = $conn->query($query);
+
+function formatTimelineTime($value) {
+    if (empty($value)) {
+        return "";
+    }
+    return date('d M Y, h:i A', strtotime($value));
+}
+
+function getResolvedDuration($createdAt, $resolvedAt) {
+    if (empty($createdAt) || empty($resolvedAt)) {
+        return "";
+    }
+
+    $seconds = strtotime($resolvedAt) - strtotime($createdAt);
+    if ($seconds <= 0) {
+        return "";
+    }
+
+    $days = floor($seconds / 86400);
+    $hours = floor(($seconds % 86400) / 3600);
+    $minutes = floor(($seconds % 3600) / 60);
+
+    if ($days > 0) {
+        return "Resolved in " . $days . " day" . ($days > 1 ? "s" : "");
+    }
+    if ($hours > 0) {
+        return "Resolved in " . $hours . " hour" . ($hours > 1 ? "s" : "");
+    }
+    if ($minutes > 0) {
+        return "Resolved in " . $minutes . " minute" . ($minutes > 1 ? "s" : "");
+    }
+    return "Resolved in less than a minute";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,7 +81,7 @@ $result = $conn->query($query);
                         <th>Description</th>
                         <th>Status</th>
                         <th>File</th>
-                        <th>Date</th>
+                        <th>Timeline</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,7 +93,7 @@ $result = $conn->query($query);
                                 <td>
                                     <?php 
                                         $statusClass = 'status-pending';
-                                        if($row['status'] == 'In Progress') $statusClass = 'status-progress';
+                                        if($row['status'] == 'In Progress' || $row['status'] == 'Under Review') $statusClass = 'status-review';
                                         if($row['status'] == 'Resolved') $statusClass = 'status-resolved';
                                     ?>
                                     <span class="status-badge <?php echo $statusClass; ?>"><?php echo $row['status']; ?></span>
@@ -72,7 +105,33 @@ $result = $conn->query($query);
                                         <span style="color: #cbd5e1; font-size: 0.8rem;">None</span>
                                     <?php endif; ?>
                                 </td>
-                                <td style="font-size: 0.8rem; color: #64748b;"><?php echo date('d M Y, h:i A', strtotime($row['created_at'])); ?></td>
+                                <td>
+                                    <?php
+                                        $isReviewStage = ($row['status'] == 'Under Review' || $row['status'] == 'In Progress');
+                                        $isResolvedStage = ($row['status'] == 'Resolved');
+                                    ?>
+                                    <div class="complaint-timeline">
+                                        <span class="timeline-step <?php echo $isReviewStage || $isResolvedStage ? 'done' : 'current'; ?>">
+                                            <span class="dot"></span>
+                                            Submitted (<?php echo formatTimelineTime($row['created_at']); ?>)
+                                        </span>
+                                        <span class="timeline-separator">→</span>
+                                        <span class="timeline-step <?php echo !empty($row['reviewed_at']) || $isResolvedStage ? 'done' : ($isReviewStage ? 'current' : ''); ?>">
+                                            <span class="dot"></span>
+                                            Under Review<?php echo !empty($row['reviewed_at']) ? " (" . formatTimelineTime($row['reviewed_at']) . ")" : ""; ?>
+                                        </span>
+                                        <span class="timeline-separator">→</span>
+                                        <span class="timeline-step <?php echo $isResolvedStage ? 'current done' : ''; ?>">
+                                            <span class="dot"></span>
+                                            Resolved<?php echo !empty($row['resolved_at']) ? " (" . formatTimelineTime($row['resolved_at']) . ")" : ""; ?>
+                                        </span>
+                                    </div>
+                                    <?php if(!empty($row['resolved_at'])): ?>
+                                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">
+                                            <?php echo getResolvedDuration($row['created_at'], $row['resolved_at']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>

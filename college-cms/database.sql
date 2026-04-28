@@ -22,10 +22,20 @@ CREATE TABLE IF NOT EXISTS complaints (
     category VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     file_path VARCHAR(255),
-    status ENUM('Pending', 'In Progress', 'Resolved') DEFAULT 'Pending',
+    status ENUM('Pending', 'In Progress', 'Under Review', 'Resolved') DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP NULL DEFAULT NULL,
+    resolved_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Ensure existing deployments also get timeline columns/status option.
+ALTER TABLE complaints
+    MODIFY COLUMN status ENUM('Pending', 'In Progress', 'Under Review', 'Resolved') DEFAULT 'Pending';
+ALTER TABLE complaints
+    ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE complaints
+    ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP NULL DEFAULT NULL;
 
 -- Insert a default admin (Password: admin123)
 -- Note: In a real app, use password_hash() in PHP to generate this.
