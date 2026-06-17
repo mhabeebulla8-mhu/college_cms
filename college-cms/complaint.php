@@ -15,8 +15,8 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $initial_category = isset($_GET['category']) ? $_GET['category'] : "";
-if ($_SESSION['role'] == 'admin') {
-    header("Location: admin.php");
+if ($_SESSION['role'] !== 'student') {
+    header("Location: " . ($_SESSION['role'] == 'admin' ? 'admin.php' : 'dept_admin.php'));
     exit();
 }
 
@@ -24,22 +24,33 @@ $error = "";
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $category = $_POST['category'];
+    $category = trim($_POST['category']);
     $subcategory = $_POST['subcategory'] ?? "";
     $is_anonymous = isset($_POST['is_anonymous']) ? 1 : 0;
-    $description = $_POST['description'];
+    $description = trim($_POST['description']);
     $priority = analyzePriority($description, $category);
     $user_id = $_SESSION['user_id'];
     $file_path = "";
 
+    if ($category === "" || $subcategory === "" || $description === "") {
+        $error = "Please complete all required complaint details.";
+        goto render_page;
+    }
+
     // File Upload Handling
     if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
         $target_dir = "uploads/";
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
         $file_name = time() . "_" . basename($_FILES["file"]["name"]);
         $target_file = $target_dir . $file_name;
         
         if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
             $file_path = $target_file;
+        } else {
+            $error = "Failed to upload the supporting document.";
+            goto render_page;
         }
     }
 
@@ -72,23 +83,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Failed to submit complaint.";
     }
 }
+
+render_page:
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lodge Complaint - Student CMS</title>
+    <title>Lodge Complaint - Student Complaint Management System</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
         <nav class="container">
             <div class="logo">
-                <h1>MSc/BCA College</h1>
+                <span style="font-size: 1.25rem;">Student Complaint Management System</span>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
                 <li><a href="dashboard.php">Dashboard</a></li>
+                <li><a href="profile.php">Profile</a></li>
                 <li><a href="logout.php">Logout</a></li>
             </ul>
         </nav>

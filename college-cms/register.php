@@ -64,8 +64,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         goto render_page;
     }
     $role = 'student';
-    $university_reg_no = $_POST['university_reg_no'] ?? '';
+    $university_reg_no = strtoupper(trim($_POST['university_reg_no'] ?? ''));
     $id_card_path = "";
+
+    // --- USN (University Reg No) Validation ---
+    if (empty($university_reg_no)) {
+        $error = "University Reg No (USN) is required!";
+        goto render_page;
+    }
+
+    // 1. Regex Validation: U + 2 digits + 2 letters + 2 digits + 1 letter + 4 digits
+    // Pattern: /^U\d{2}[A-Z]{2}\d{2}[A-Z]\d{4}$/
+    if (preg_match('/^U\d{2}[A-Z]{2}\d{2}[A-Z](\d{4})$/', $university_reg_no, $matches)) {
+        $serial = (int)$matches[1];
+        if ($serial < 1 || $serial > 125) {
+            $error = "USN serial number must be between 0001 and 0125!";
+            goto render_page;
+        }
+    } else {
+        $error = "Invalid USN format! Example: U18AS23S0064";
+        goto render_page;
+    }
+
+    // 2. Check if USN is in valid_students table
+    try {
+        // Ensure table exists
+        $conn->query("CREATE TABLE IF NOT EXISTS valid_students (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usn VARCHAR(20) NOT NULL UNIQUE,
+            name VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // Check if this USN is authorized
+        $stmt_valid = $conn->prepare("SELECT id FROM valid_students WHERE usn = ?");
+        $stmt_valid->bind_param("s", $university_reg_no);
+        $stmt_valid->execute();
+        $res_valid = $stmt_valid->get_result();
+        
+        if ($res_valid->num_rows === 0) {
+            // If not found, let's check if there are ANY students. If table is empty, auto-authorize the first one for easier setup.
+            $count_check = $conn->query("SELECT COUNT(*) as total FROM valid_students");
+            $row_count = $count_check->fetch_assoc();
+            if ($row_count['total'] == 0) {
+                $conn->query("INSERT INTO valid_students (usn, name) VALUES ('$university_reg_no', 'Authorized Student')");
+            } else {
+                $error = "This USN ($university_reg_no) is not authorized. Please add it to the valid_students table.";
+                goto render_page;
+            }
+        }
+    } catch (Exception $e) {
+        die("FATAL DATABASE ERROR: " . $e->getMessage() . " (Target: $host:$port, DB: $dbname)");
+    } catch (Error $e) {
+        die("FATAL SYSTEM ERROR: " . $e->getMessage());
+    }
+
+    // 3. Check if USN is already registered in users table
+    $stmt_exists = $conn->prepare("SELECT id FROM users WHERE university_reg_no = ?");
+    $stmt_exists->bind_param("s", $university_reg_no);
+    $stmt_exists->execute();
+    if ($stmt_exists->get_result()->num_rows > 0) {
+        $error = "This USN is already registered!";
+        goto render_page;
+    }
 
     // File Upload Handling for ID Card
     if (isset($_FILES['id_card']) && $_FILES['id_card']['error'] == 0) {
@@ -106,9 +167,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $response = curl_exec($ch);
                 $result_ai = json_decode($response, true);
                 
-                if (is_resource($ch) || (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80000 && $ch instanceof \CurlHandle)) {
-                    curl_close($ch);
-                }
+                if ($ch) curl_close($ch);
 
                 $answer = $result_ai['candidates'][0]['content']['parts'][0]['text'] ?? 'NO';
                 
@@ -131,43 +190,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $error = "Email already registered!";
     } else {
-        // Insert user (not verified yet)
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0)");
-        $stmt->bind_param("ssssss", $name, $email, $password, $role, $university_reg_no, $id_card_path);
+        // Generate 6-digit OTP
+        $otp = rand(100000, 999999);
         
-        if ($stmt->execute()) {
-            $user_id = $stmt->insert_id;
-            
-            // Generate verification token
-            $token = bin2hex(random_bytes(32));
-            $expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
-            
-            $stmt_v = $conn->prepare("INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)");
-            $stmt_v->bind_param("iss", $user_id, $token, $expires_at);
-            $stmt_v->execute();
-            
-            // Send Verification Email
-            require_once 'mailer.php';
-            $verify_link = SITE_URL . "/verify_email.php?token=" . $token;
-            $subject = "Verify your Account - College CMS";
-            $message = "
-                <h2>Welcome to College CMS</h2>
-                <p>Hello $name, please click the link below to verify your email address and complete your registration:</p>
-                <p><a href='$verify_link' style='padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;'>Verify Email</a></p>
-                <p>This link will expire in 24 hours.</p>
-            ";
-            
-            $mailSent = sendMail($email, $subject, $message);
-            if ($mailSent) {
-                header("Location: login.php?msg=" . urlencode("Registration successful! Please check your email to verify your account."));
-            } else {
-                // Do not block registration if SMTP is slow/misconfigured.
-                header("Location: login.php?msg=" . urlencode("Registration successful. Email sending failed, so contact admin to verify your account."));
-            }
-            exit();
+        // Store data in session
+        $_SESSION['temp_reg'] = [
+            'name' => $name,
+            'email' => $email,
+            'password' => $password,
+            'role' => $role,
+            'university_reg_no' => $university_reg_no,
+            'id_card_path' => $id_card_path,
+            'otp' => $otp,
+            'otp_time' => time()
+        ];
+        
+        // Send Verification Email with OTP
+        require_once 'mailer.php';
+        $subject = "Your Verification Code - College CMS";
+        $message = "
+            <h2>Welcome to College CMS</h2>
+            <p>Hello $name,</p>
+            <p>Your verification code for registration is:</p>
+            <h1 style='color: #3b82f6; font-size: 2.5rem; letter-spacing: 5px; text-align: center;'>$otp</h1>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+        ";
+        
+        $mailSent = sendMail($email, $subject, $message);
+        if ($mailSent) {
+            header("Location: verify_otp.php");
         } else {
-            $error = "Registration failed: " . $conn->error;
+            $error = "Failed to send verification email. Please try again.";
         }
+        exit();
     }
 }
 
@@ -177,7 +233,7 @@ render_page:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register - Student CMS</title>
+    <title>Register - Student Complaint Management System</title>
     <link rel="stylesheet" href="css/style.css?v=<?php echo filemtime(__DIR__ . '/css/style.css'); ?>">
 </head>
 <body>
@@ -198,8 +254,8 @@ render_page:
                 <input type="email" name="email" required placeholder="example@gmail.com" pattern="[a-zA-Z0-9._%+-]+@gmail\.com$">
             </div>
             <div class="form-group">
-                <label>University Reg No</label>
-                <input type="text" name="university_reg_no" required placeholder="">
+                <label>University Reg No (USN)</label>
+                <input type="text" name="university_reg_no" required style="text-transform: uppercase;">
             </div>
             <div class="form-group">
                 <label>Upload ID Card</label>

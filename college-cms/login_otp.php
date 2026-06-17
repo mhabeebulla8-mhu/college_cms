@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Verify OTP
         elseif (password_verify($otp_input, $row['otp_hash'])) {
             // Success! Create session
-            $stmt_u = $conn->prepare("SELECT id, name, role, email FROM users WHERE id = ?");
+            $stmt_u = $conn->prepare("SELECT id, name, role, email, university_reg_no FROM users WHERE id = ?");
             $stmt_u->bind_param("i", $user_id);
             $stmt_u->execute();
             $user = $stmt_u->get_result()->fetch_assoc();
@@ -42,6 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['name'] = $user['name'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['usn'] = $user['university_reg_no'];
             
             // Delete OTP
             $conn->query("DELETE FROM otp_codes WHERE user_id = $user_id");
@@ -74,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Verify OTP - Student CMS</title>
+    <title>Verify OTP - Student Complaint Management System</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .otp-input {

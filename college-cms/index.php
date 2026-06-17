@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSc/BCA College Institute - Student CMS</title>
+    <title>Student Complaint Management System</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -12,14 +12,14 @@
     <header>
         <nav class="container">
             <div class="logo">
-                <h1>MSc/BCA College Institute</h1>
-                <span>Student CMS</span>
+                <span style="font-size: 1.25rem;">Student Complaint Management System</span>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
                 <li><a href="#policy">Policy</a></li>
                 <?php if(isset($_SESSION['user_id'])): ?>
                     <li><a href="<?php echo ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'dept_admin') ? ($_SESSION['role'] == 'admin' ? 'admin.php' : 'dept_admin.php') : 'dashboard.php'; ?>">Dashboard</a></li>
+                    <li><a href="profile.php">Profile</a></li>
                     <li><a href="logout.php" class="btn-login">Logout</a></li>
                 <?php else: ?>
                     <li><a href="login.php" class="btn-login">Student Login</a></li>
@@ -31,7 +31,7 @@
 
     <main class="container">
         <section class="hero">
-            <h2>Student <span>CMS</span></h2>
+            <h2>Student Complaint Management System</h2>
             <p>A secure platform for students to voice their concerns.</p>
         </section>
 
@@ -87,7 +87,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 MSc/BCA College Institute. All rights reserved.</p>
+        <p>&copy; 2026 Student Complaint Management System. All rights reserved.</p>
     </footer>
 
     <script src="js/main.js"></script>

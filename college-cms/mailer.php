@@ -32,9 +32,7 @@ function analyzePriority($description, $category) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
-    if (is_resource($ch) || (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80000 && $ch instanceof \CurlHandle)) {
-        curl_close($ch);
-    }
+    if ($ch) curl_close($ch);
 
     if ($httpCode === 200) {
         $result = json_decode($response, true);
@@ -76,9 +74,7 @@ function generateAISmartReply($description, $category, $subcategory) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
-    if (is_resource($ch) || (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80000 && $ch instanceof \CurlHandle)) {
-        curl_close($ch);
-    }
+    if ($ch) curl_close($ch);
 
     if ($httpCode === 200) {
         $result = json_decode($response, true);
@@ -117,9 +113,7 @@ function generateGeminiEmail($name, $category) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
-    if (is_resource($ch) || (defined('PHP_VERSION_ID') && PHP_VERSION_ID >= 80000 && $ch instanceof \CurlHandle)) {
-        curl_close($ch);
-    }
+    if ($ch) curl_close($ch);
 
     if ($httpCode === 200) {
         $result = json_decode($response, true);

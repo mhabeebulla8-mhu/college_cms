@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($entered_otp == $temp_data['otp']) {
         if (time() - $temp_data['otp_time'] < 600) {
             // OTP is valid! Create the account
-            $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password, role, university_reg_no, id_card_path, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1)");
             $stmt->bind_param("ssssss", 
                 $temp_data['name'], 
                 $temp_data['email'], 
@@ -62,11 +62,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2 style="text-align:center;">Email Verification</h2>
         <p style="text-align:center; color: #666; margin-bottom: 2rem;">
             A 6-digit verification code has been sent to:<br>
-            <strong><?php echo $_SESSION['temp_reg']['email']; ?></strong>
+            <strong><?php echo htmlspecialchars($_SESSION['temp_reg']['email']); ?></strong>
         </p>
 
         <?php if($error): ?>
-            <div style="color: red; margin-bottom: 1rem; text-align: center;"><?php echo $error; ?></div>
+            <div style="color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #fecaca;">
+                <?php echo $error; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if(isset($_GET['error'])): ?>
+            <div style="color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #fecaca;">
+                <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if(isset($_GET['msg'])): ?>
+            <div style="color: #059669; background: #ecfdf5; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #10b981;">
+                <?php echo htmlspecialchars($_GET['msg']); ?>
+            </div>
         <?php endif; ?>
 
         <form action="verify_otp.php" method="POST">
@@ -78,7 +92,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </form>
         
         <p style="text-align:center; margin-top: 1.5rem; font-size: 0.9rem;">
-            Didn't get the code? <a href="register.php" style="color: #3b82f6;">Try registering again</a>
+            Didn't get the code? <a href="resend_reg_otp.php" style="color: #3b82f6; font-weight: bold;">Resend OTP</a><br><br>
+            <a href="register.php" style="color: #64748b;">Back to Registration</a>
         </p>
     </div>
 </body>

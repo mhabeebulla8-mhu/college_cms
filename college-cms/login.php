@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Student CMS</title>
+    <title>Login - Student Complaint Management System</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -74,10 +74,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2 id="login-title" style="text-align:center; margin-bottom: 0.5rem;">Welcome Back</h2>
         <p id="login-subtitle" style="text-align:center; color: #64748b; font-size: 0.9rem; margin-bottom: 2rem;">Login to access your CMS dashboard</p>
         
-        <?php if(isset($_GET['msg'])): ?>
-            <div style="color: green; margin-bottom: 1rem; text-align: center;"><?php echo $_GET['msg']; ?></div>
-        <?php endif; ?>
-
         <?php if(isset($_GET['msg'])): ?>
             <div style="color: #059669; background: #ecfdf5; padding: 10px; border-radius: 5px; margin-bottom: 1rem; text-align: center; border: 1px solid #10b981;">
                 <?php echo htmlspecialchars($_GET['msg']); ?>
