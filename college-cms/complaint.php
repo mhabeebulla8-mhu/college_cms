@@ -60,22 +60,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $success = "Complaint submitted successfully!";
         
-        // Use Gemini AI to generate a nice email if available
+        // Use the new HTML template matching the exact format
         $studentName = $_SESSION['name'];
-        $emailBody = generateGeminiEmail($studentName, $category);
-        
-        if (!$emailBody) {
-            // Fallback content if AI fails or key is missing
-            $emailBody = "
-                <h2>Complaint Received</h2>
-                <p>Dear $studentName,</p>
-                <p>Your complaint regarding <strong>$category</strong> has been successfully submitted and will be reviewed shortly by the relevant committee.</p>
-                <p>Thank you for bringing this to our attention.</p>
-            ";
-        }
+        $dateStr = date('j F Y \a\t g:i a');
+        $emailBody = generateComplaintRegisteredEmailHtml($studentName, $category, $description, $dateStr);
         
         $to = $_SESSION['email'];
-        $subject = "Complaint Received: $category";
+        $subject = "✅ Complaint Registered: $category";
         
         // Use PHPMailer via the sendMail function
         sendMail($to, $subject, $emailBody);
